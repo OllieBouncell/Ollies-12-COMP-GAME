@@ -5,9 +5,16 @@ console.log("%c t01_create_sprite", "color: blue;");
 /*******************************************************/
 
 const SCREEN_WIDTH = 400;
-const SCREEN_HEIGHT = 200;
-let bullets = []
+const SCREEN_HEIGHT = 200;;
+const OBSTACLE_HEIGHT = 25;
+const OBSTACLE_WIDTH = 25;
 
+var spawnDist = 0;
+var nextSpawn = 0;
+let bullets = [];
+var score = 0;
+var lives = 3;
+var screenSelector = "start"; 
 /*******************************************************/
 // setup()
 /*******************************************************/
@@ -22,39 +29,46 @@ imgPlayer = loadImage('/images/player.png');
 
 function setup() {
     console.log("setup: ");
+    
     cnv= new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+     obstacles = new Group();
 
     wallLH  = new Sprite(0, SCREEN_HEIGHT/2, 8, SCREEN_HEIGHT , 's');
     wallLH.color = 'lightblue';
     WallLH = noStroke()
-    WallLH.bounciness = 0;
+ 
     
     wallTop = new Sprite(SCREEN_WIDTH/2, 0,SCREEN_WIDTH, 8, 's');
     wallTop.color = 'lightblue';
     WallTop = noStroke()
-    WallTop.bounciness = 0;
+  
     
-    wallBot = new Sprite(SCREEN_WIDTH/2,  SCREEN_HEIGHT , SCREEN_WIDTH, 8, 's');
+    wallBot = new Sprite(SCREEN_WIDTH/2,  SCREEN_HEIGHT , SCREEN_WIDTH, 8, 's ');
     wallBot.color = 'lightblue';
     WallBot = noStroke()
-    WallBot.bounciness = 0;
+   
+    
+    
  
- 
- 
+
  
  
  //P5.play website//
-    player = new Sprite(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 50, 'd');
+    player = new Sprite(100, 100, 20, 'd');
     player.color = 'green';
-    player.rotation = 0;
-    player.bounciness = 0;
  
-    player.addImage(imgPlayer);
+     player.addImage(imgPlayer);
     imgPlayer.resize(100, 100);
  
- 
- 
- 
+
+document.addEventListener("keydown", 
+        function(event) {
+            if(screenSelector == "start"||screenSelector == "end"){
+                screenSelector = "game"
+                resetGame()
+            }
+        }); 
+
  // Keyboard Movement-Up and Down //
 document.addEventListener("keydown", function(event) {
 
@@ -69,7 +83,7 @@ player.vel.x = -3;
 else if 
 (event.code === 'ArrowUp') player.vel.y = -3;
 else if 
-(event.code === 'ArrowDown')  player.vel.y = 3;
+(event.code === 'ArrowDown')  player.vel.y = 3; 
 
 
 });
@@ -91,9 +105,13 @@ else if
 else if 
 (event.code === 'ArrowDown')  player.vel.y = 0;
 
+obstacles.collides(player, playerHitAlien);
 
+bulletGroup = new Group();
+bulletGroup.collides(obstacle, bulletHitObstacle);
 
 });
+
 
 
 
@@ -102,5 +120,129 @@ else if
 // draw()
 /*******************************************************/
 function draw() {
+ if(screenSelector=="game"){
+        gameScreen();
+if (lives <= 0) {
+    screenSelector = "end";
+        }
+    }else if(screenSelector=="end"){
+        endScreen();
+    }else if(screenSelector=="start"){
+        startScreen();
+    }else{
+        text("wrong screen - you shouldnt get here", 50, 50);
+        console.log("wrong screen - you shouldnt get here")
+    }
+    
+}
+
+
+
+ function keyPressed() {
+  if (keyCode == 32)
+    bullet = new Sprite( player.x + 50, player.y, 5, 'd');
+    bullet.color = 'yellow';
+    bullet.vel.x = 3;
+    bulletGroup.add(bullet);
+    
+    bullet.life = 50;// life of how many frames the bullet lasts found on p5.play website
+
+}
+
+
+function newObstacle(){
+    // Code from Geodash
+    var screenY = random(15,200)
+    obstacle = new Sprite(SCREEN_WIDTH, screenY, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, 'k');
+    obstacle.color = color("green");
+    obstacle.vel.x = -5;
+    
+    obstacles.add(obstacle);
+}
+
+
+
+
+function bulletHitObstacle(bullet, obstacle) {
+    // Remove bullet and obstacle
+    obstacle.remove();
+     score ++;
+}
+
+function playerHitAlien (_player,alien) {
+
+    lives --;
+    console.log("Lives");
+ 
+ 
+ 
+ 
+}
+
+
+
+// Main screen functions
+function startScreen(){
+    allSprites.visible = false;
+    background("white");
+    textSize(32);
+    fill(255);
+    stroke(0);
+    strokeWeight(4);
+    text("Infinity Assault ", 50, 50);
+    textSize(24);
+    text("Press any key to start", 50, 110);
+}
+
+
+
+
+
+
+function gameScreen(){
+    
+
  background("lightblue");
+ player.rotation = 0;
+ player.bounciness = 0;
+ allSprites.visible = true;
+         for (i = 0; i <lives; i++){
+    rect(40 * i, 10, 35, 35);
+  }
+  fill(0);
+    stroke(0);
+    strokeWeight();
+   textSize(32);
+    text(score, 320, 40);
+
+   if(frameCount> nextSpawn){
+        newObstacle();
+        nextSpawn = frameCount + random(10,200);
+    }
+}
+
+function endScreen(){
+    background("white");
+
+    allSprites.visible = false;
+    textSize(32);
+    fill(255);
+    stroke(0);
+    strokeWeight(4);
+    text("You died! Too bad :-(", 50, 50);
+    textSize(24);
+    text("your score was: "+score, 50, 110);
+    textSize(14);
+    text("press any key to restart", 50, 150);
+    
+    
+    
+    
+}
+
+function resetGame(){ 
+    gameScreen()
+    obstacles.collides(player, playerHitAlien);
+    bulletGroup.collides(obstacle, bulletHitObstacle);
+    score = 0;
 }
